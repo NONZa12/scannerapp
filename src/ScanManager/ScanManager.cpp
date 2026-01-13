@@ -1,5 +1,6 @@
 #include <QDebug>
 #include <QImage>
+#include <QtWin>
 #include <QPdfWriter>
 #include <QPageSize>
 #include <QPainter>
@@ -42,7 +43,7 @@ void ScanManager::startScanning()
             HANDLE hBitmap = DTWAIN_GetAcquiredImage(images, i, 0);
             if (hBitmap)
             {
-                QImage img = QImage::fromHBITMAP((HBITMAP)hBitmap);
+                QImage img = QtWin::fromHBITMAP((HBITMAP)hBitmap).toImage();
                 if (!img.isNull())
                 {
                     emit imageAcquired(img);

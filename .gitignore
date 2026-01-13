@@ -53,7 +53,5 @@ compile_commands.json
 
 *_qmlcache.qrc
 
-
-CMakeLists.txt
-*3rdparty*
-*.vscode
+# VS Code
+.vscode/
