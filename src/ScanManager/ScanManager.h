@@ -15,6 +15,8 @@ public:
     ~ScanManager();
 
     bool initScanner();
+
+    QImage DIBToQImage(HANDLE hDIB);
     void startScanning();
 
     bool saveToPdf(const QString &filePath, const QList<QImage> &images);

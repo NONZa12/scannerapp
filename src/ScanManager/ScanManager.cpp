@@ -1,9 +1,11 @@
 #include <QDebug>
 #include <QImage>
-#include <QtWin>
 #include <QPdfWriter>
 #include <QPageSize>
 #include <QPainter>
+#include <QBuffer>
+#include <QImageReader>
+#include <Windows.h>
 
 #include "ScanManager.h"
 
@@ -26,6 +28,47 @@ bool ScanManager::initScanner()
     return (m_SelectedSource != nullptr);
 }
 
+QImage ScanManager::DIBToQImage(HANDLE hDIB)
+{
+    if (!hDIB) return QImage();
+
+    //Lock memory
+    uchar *data = (uchar *)GlobalLock(hDIB);
+    if (!data) return QImage();
+
+    //Read Header
+    BITMAPINFOHEADER *bmi = (BITMAPINFOHEADER *)data;
+
+    //Calculate image size
+    int nColors = 0;
+    if (bmi->biBitCount <= 8)
+    {
+        nColors = (bmi->biClrUsed == 0) ? (1 << bmi->biBitCount) : bmi->biClrUsed;
+    }
+    DWORD imageSize = GlobalSize(hDIB);
+
+    //Create BMP file header
+    BITMAPFILEHEADER bmf;
+    bmf.bfType = 0x4D42; // "BM" signature
+    bmf.bfReserved1 = 0;
+    bmf.bfReserved2 = 0;
+    bmf.bfOffBits = sizeof(BITMAPFILEHEADER) + bmi->biSize + (nColors * sizeof(RGBQUAD));
+    bmf.bfSize = sizeof(BITMAPFILEHEADER) + imageSize;
+
+    //Create QByteArray
+    QByteArray packedBmp;
+    packedBmp.append((const char *)&bmf, sizeof(BITMAPFILEHEADER));
+    packedBmp.append((const char *)data, imageSize);
+
+    //Unlock memory
+    GlobalUnlock(hDIB);
+
+    QImage result;
+    result.loadFromData(packedBmp, "BMP");
+
+    return result;
+}
+
 void ScanManager::startScanning()
 {
     if (!m_SelectedSource) {
@@ -43,7 +86,8 @@ void ScanManager::startScanning()
             HANDLE hBitmap = DTWAIN_GetAcquiredImage(images, i, 0);
             if (hBitmap)
             {
-                QImage img = QtWin::fromHBITMAP((HBITMAP)hBitmap).toImage();
+                QImage img = DIBToQImage(hBitmap);
+                GlobalFree(hBitmap);
                 if (!img.isNull())
                 {
                     emit imageAcquired(img);
