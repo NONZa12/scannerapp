@@ -4,6 +4,7 @@
 #include <QListWidget>
 #include <QLabel>
 #include <QScrollArea>
+#include <QMap>
 
 #include "ScanManager/ScanManager.h"
 
@@ -20,6 +21,7 @@ private slots:
     void onSavePdfClicked();
     void onImageReceived(QImage img);
     void onThumnailClicked(QListWidgetItem *item);
+    void updatePageNumbers();
 
 private:
     void setupUi();
@@ -29,4 +31,7 @@ private:
     QListWidget *m_thumnailList;
     QLabel *m_previewLabel;
     QScrollArea *m_scrollArea;
+
+    QMap<int, QImage> m_imageMap;
+    int m_nextId = 0;
 };

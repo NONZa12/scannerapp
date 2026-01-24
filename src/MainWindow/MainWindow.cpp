@@ -48,10 +48,9 @@ void MainWindow::setupUi()
     //Thumnail list
     m_thumnailList = new QListWidget();
     m_thumnailList->setFixedWidth(250);
-    m_thumnailList->setViewMode(QListWidget::IconMode);
-    m_thumnailList->setIconSize(QSize(180, 240));
-    m_thumnailList->setSpacing(10);
-    m_thumnailList->setResizeMode(QListWidget::Adjust);
+    m_thumnailList->setViewMode(QListWidget::ListMode);
+    m_thumnailList->setIconSize(QSize(100, 140));
+    m_thumnailList->setSpacing(5);
 
     //make drag & drop
     m_thumnailList->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -61,6 +60,7 @@ void MainWindow::setupUi()
     m_thumnailList->setDragDropMode(QAbstractItemView::InternalMove);
 
     connect(m_thumnailList, &QListWidget::itemClicked, this, &MainWindow::onThumnailClicked);
+    connect(m_thumnailList->model(), &QAbstractItemModel::rowsMoved, this, &MainWindow::updatePageNumbers);
 
     //Preview area
     m_scrollArea = new QScrollArea();
@@ -84,14 +84,19 @@ void MainWindow::onScanClicked()
 
 void MainWindow::onImageReceived(QImage img)
 {
+    int myId = m_nextId++;
+    m_imageMap.insert(myId, img);
+
     QListWidgetItem *item = new QListWidgetItem();
     item->setText(QString("Page %1").arg(m_thumnailList->count() + 1));
 
-    item->setIcon(QIcon(QPixmap::fromImage(img)));
+    item->setIcon(QIcon(QPixmap::fromImage(img).scaled(100, 140, Qt::KeepAspectRatio)));
 
-    item->setData(Qt::UserRole, QVariant(img));
+    item->setData(Qt::UserRole, myId);
 
     m_thumnailList->addItem(item);
+
+    updatePageNumbers();
 
     m_previewLabel->setPixmap(QPixmap::fromImage(img));
     m_thumnailList->scrollToBottom();
@@ -99,8 +104,13 @@ void MainWindow::onImageReceived(QImage img)
 
 void MainWindow::onThumnailClicked(QListWidgetItem *item)
 {
-    QImage img = item->data(Qt::UserRole).value<QImage>();
-    m_previewLabel->setPixmap(QPixmap::fromImage(img));
+    int id = item->data(Qt::UserRole).toInt();
+
+    if (m_imageMap.contains(id));
+    {
+        QImage img = m_imageMap.value(id);
+        m_previewLabel->setPixmap(QPixmap::fromImage(img));
+    }
 }
 
 void MainWindow::onSavePdfClicked()
@@ -118,7 +128,12 @@ void MainWindow::onSavePdfClicked()
     for (int i=0; i<m_thumnailList->count(); ++i)
     {
         QListWidgetItem *item = m_thumnailList->item(i);
-        imagesToSave.append(item->data(Qt::UserRole).value<QImage>());
+
+        int id = item->data(Qt::UserRole).toInt();
+        if (m_imageMap.contains(id))
+        {
+            imagesToSave.append(m_imageMap.value(id));
+        }
     }
 
     if (m_scanManager->saveToPdf(filename, imagesToSave))
@@ -128,5 +143,14 @@ void MainWindow::onSavePdfClicked()
     else
     {
         QMessageBox::critical(this, "Error", "Failed to save PDF.");
+    }
+}
+
+void MainWindow::updatePageNumbers()
+{
+    for (int i=0; i<m_thumnailList->count(); ++i)
+    {
+        QListWidgetItem *item = m_thumnailList->item(i);
+        item->setText(QString("Page %1").arg(i+1));
     }
 }
