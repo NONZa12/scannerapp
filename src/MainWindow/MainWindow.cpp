@@ -5,6 +5,7 @@
 #include <QPalette>
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QFormLayout>
 
 #include "MainWindow.h"
 #include <iostream>
@@ -40,10 +41,33 @@ void MainWindow::setupUi()
     connect(actScan, &QAction::triggered, this, &MainWindow::onScanClicked);
     connect(actSave, &QAction::triggered, this, &MainWindow::onSavePdfClicked);
 
-    //Layout
+    //Main Layout
     QWidget *centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
-    QHBoxLayout *layout = new QHBoxLayout(centralWidget);
+    QHBoxLayout *mainLayout = new QHBoxLayout(centralWidget);
+
+    //Resolution ComboBox
+    m_comboResolution = new QComboBox();
+    m_comboResolution->addItem("100 DPI", 100);
+    m_comboResolution->addItem("200 DPI", 200);
+    m_comboResolution->addItem("300 DPI", 300);
+    m_comboResolution->setCurrentIndex(2); //Select 300 by default
+
+    //Color Mode ComboBox
+    m_comboColorMode = new QComboBox();
+    m_comboColorMode->addItem("Black, White", 0);
+    m_comboColorMode->addItem("Grayscale", 1);
+    m_comboColorMode->addItem("Color", 2);
+    m_comboColorMode->setCurrentIndex(2); //Select Color by default
+
+    //Duplex CheckBox
+    m_checkDuplex = new QCheckBox("Scan Both Sides(Duplex)");
+
+    //Add to form layout
+    QFormLayout *settingsLayout = new QFormLayout();
+    settingsLayout->addRow(new QLabel("Resolution"), m_comboResolution);
+    settingsLayout->addRow(new QLabel("Color Mode"), m_comboColorMode);
+    settingsLayout->addRow(m_checkDuplex);
 
     //Thumnail list
     m_thumnailList = new QListWidget();
@@ -71,15 +95,22 @@ void MainWindow::setupUi()
     m_previewLabel->setAlignment(Qt::AlignCenter);
     m_scrollArea->setWidget(m_previewLabel);
 
-    //Add to Layout
-    layout->addWidget(m_thumnailList);
-    layout->addWidget(m_scrollArea);
+    //Add layout and widget to mainLayout
+    mainLayout->addLayout(settingsLayout);
+    mainLayout->addWidget(m_thumnailList);
+    mainLayout->addWidget(m_scrollArea);
 }
 
 void MainWindow::onScanClicked()
 {
+    
     m_previewLabel->setText("Scanning... Please wait.");
-    m_scanManager->startScanning();
+
+    int dpi = m_comboResolution->currentData().toInt();
+    int pixelType = m_comboColorMode->currentData().toInt();
+    int duplex = m_checkDuplex->isChecked();
+
+    m_scanManager->startScanning(dpi, pixelType, duplex);
 }
 
 void MainWindow::onImageReceived(QImage img)

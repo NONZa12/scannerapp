@@ -17,7 +17,7 @@ public:
     bool initScanner();
 
     QImage DIBToQImage(HANDLE hDIB);
-    void startScanning();
+    void startScanning(int dpi, int pixelType, bool duplex);
 
     bool saveToPdf(const QString &filePath, const QList<QImage> &images);
 

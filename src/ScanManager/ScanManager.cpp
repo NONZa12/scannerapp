@@ -13,7 +13,7 @@ ScanManager::ScanManager(QObject *parent) : QObject(parent)
 {
     if (!DTWAIN_SysInitialize())
     {
-        qDebug() << "Failed to initialize DTWAIN";
+        qDebug() << "Warning: Failed to initialize DTWAIN";
     }
 }
 
@@ -69,14 +69,29 @@ QImage ScanManager::DIBToQImage(HANDLE hDIB)
     return result;
 }
 
-void ScanManager::startScanning()
+void ScanManager::startScanning(int dpi, int pixelType, bool duplex)
 {
     if (!m_SelectedSource) {
         if(!initScanner()) return;
     }
 
+    //set DPI
+    if (!DTWAIN_SetResolution(m_SelectedSource, (DTWAIN_FLOAT)dpi))
+    {
+        qDebug() << "Warning: Failed to set resolution to" << dpi;
+    }
+
+    //set Pixel Type
+    if (!DTWAIN_SetPixelType(m_SelectedSource, pixelType, DTWAIN_DEFAULT, TRUE))
+    {
+        qDebug() << "Warning: Failed to set pixel type";
+    }
+
+    //set Duplex
+    DTWAIN_EnableDuplex(m_SelectedSource, duplex ? TRUE : FALSE);
+
     DTWAIN_ARRAY images = DTWAIN_AcquireNative(
-        m_SelectedSource, DTWAIN_PT_DEFAULT, DTWAIN_MAXACQUIRE,true, true, NULL);
+        m_SelectedSource, pixelType, DTWAIN_MAXACQUIRE,true, true, NULL);
 
     if (images)
     {

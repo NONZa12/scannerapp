@@ -5,6 +5,8 @@
 #include <QLabel>
 #include <QScrollArea>
 #include <QMap>
+#include <QComboBox>
+#include <QCheckBox>
 
 #include "ScanManager/ScanManager.h"
 
@@ -31,6 +33,9 @@ private:
     QListWidget *m_thumnailList;
     QLabel *m_previewLabel;
     QScrollArea *m_scrollArea;
+    QComboBox *m_comboResolution;
+    QComboBox *m_comboColorMode;
+    QCheckBox *m_checkDuplex;
 
     QMap<int, QImage> m_imageMap;
     int m_nextId = 0;
