@@ -69,7 +69,7 @@ QImage ScanManager::DIBToQImage(HANDLE hDIB)
     return result;
 }
 
-void ScanManager::startScanning(int dpi, int pixelType, bool duplex)
+void ScanManager::startScanning(int dpi, int pixelType, int pageSize, bool useFeeder, bool duplex)
 {
     if (!m_SelectedSource) {
         if(!initScanner()) return;
@@ -87,11 +87,27 @@ void ScanManager::startScanning(int dpi, int pixelType, bool duplex)
         qDebug() << "Warning: Failed to set pixel type";
     }
 
-    //set Duplex
-    DTWAIN_EnableDuplex(m_SelectedSource, duplex ? TRUE : FALSE);
+    //set Page Size
+    if (!DTWAIN_SetPaperSize(m_SelectedSource, pageSize, TRUE))
+    {
+        qDebug() << "Warining: Failed to set page size";
+    }
+
+    //set Source and Duplex
+    if (!DTWAIN_EnableFeeder(m_SelectedSource, useFeeder))
+    {
+        qDebug() << "Warning: Failed to enable Feeder";
+    }
+    else
+    {
+        if (useFeeder & !DTWAIN_EnableDuplex(m_SelectedSource, duplex))
+        {
+            qDebug() << "Warning: Failed to enable Duplex";
+        }
+    }
 
     DTWAIN_ARRAY images = DTWAIN_AcquireNative(
-        m_SelectedSource, pixelType, DTWAIN_MAXACQUIRE,true, true, NULL);
+        m_SelectedSource, pixelType, DTWAIN_MAXACQUIRE, false, true, NULL);
 
     if (images)
     {

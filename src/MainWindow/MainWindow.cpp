@@ -60,6 +60,23 @@ void MainWindow::setupUi()
     m_comboColorMode->addItem("Color", 2);
     m_comboColorMode->setCurrentIndex(2); //Select Color by default
 
+    //Page Size ComboBox
+    m_comboPageSize = new QComboBox();
+    m_comboPageSize->addItem("A6", DTWAIN_FS_A6);
+    m_comboPageSize->addItem("A5", DTWAIN_FS_A5);
+    m_comboPageSize->addItem("A4", DTWAIN_FS_A4);
+    m_comboPageSize->addItem("A3", DTWAIN_FS_A3);
+    m_comboPageSize->addItem("A2", DTWAIN_FS_A2);
+    m_comboPageSize->addItem("Letter", DTWAIN_FS_USLETTER);
+    m_comboPageSize->addItem("Legal", DTWAIN_FS_USLEGAL);
+    m_comboPageSize->setCurrentIndex(2); //Select A4 by default
+
+    //Source ComboBox
+    m_comboSource = new QComboBox();
+    m_comboSource->addItem("Document Feeder", true);
+    m_comboSource->addItem("Flatbed", false);
+    m_comboSource->setCurrentIndex(1);
+
     //Duplex CheckBox
     m_checkDuplex = new QCheckBox("Scan Both Sides(Duplex)");
 
@@ -67,6 +84,8 @@ void MainWindow::setupUi()
     QFormLayout *settingsLayout = new QFormLayout();
     settingsLayout->addRow(new QLabel("Resolution"), m_comboResolution);
     settingsLayout->addRow(new QLabel("Color Mode"), m_comboColorMode);
+    settingsLayout->addRow(new QLabel("Page Size"), m_comboPageSize);
+    settingsLayout->addRow(new QLabel("Source"), m_comboSource);
     settingsLayout->addRow(m_checkDuplex);
 
     //Thumnail list
@@ -108,9 +127,12 @@ void MainWindow::onScanClicked()
 
     int dpi = m_comboResolution->currentData().toInt();
     int pixelType = m_comboColorMode->currentData().toInt();
-    int duplex = m_checkDuplex->isChecked();
+    int pageSize = m_comboPageSize->currentData().toInt();
 
-    m_scanManager->startScanning(dpi, pixelType, duplex);
+    bool useFeeder = m_comboSource->currentData().toBool();
+    bool duplex = m_checkDuplex->isChecked();
+
+    m_scanManager->startScanning(dpi, pixelType, pageSize, useFeeder, duplex);
 }
 
 void MainWindow::onImageReceived(QImage img)

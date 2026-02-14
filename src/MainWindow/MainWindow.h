@@ -33,8 +33,12 @@ private:
     QListWidget *m_thumnailList;
     QLabel *m_previewLabel;
     QScrollArea *m_scrollArea;
+
     QComboBox *m_comboResolution;
     QComboBox *m_comboColorMode;
+    QComboBox *m_comboPageSize;
+    QComboBox *m_comboSource;
+    
     QCheckBox *m_checkDuplex;
 
     QMap<int, QImage> m_imageMap;
