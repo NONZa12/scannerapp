@@ -191,7 +191,7 @@ void MainWindow::onSavePdfClicked()
 
     if (m_scanManager->saveToPdf(filename, imagesToSave))
     {
-        QMessageBox::information(this, "Success", "SAved successfully");
+        QMessageBox::information(this, "Success", "Saved successfully");
     }
     else
     {
